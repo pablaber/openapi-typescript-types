@@ -1,7 +1,6 @@
 import OpenAPIParser from '@readme/openapi-parser';
 import { logErrorAndExit } from './error';
-
-type OpenAPIDocument = Awaited<ReturnType<typeof OpenAPIParser.validate>>;
+import type { OpenAPIDocument } from './types';
 
 export async function parseOpenAPIFile(
   pathToOpenApi: string,
@@ -9,18 +8,26 @@ export async function parseOpenAPIFile(
   let api;
   try {
     api = await OpenAPIParser.validate(pathToOpenApi);
-  } catch (err: any) {
-    if (err.name === 'SyntaxError') {
-      let errorMessage = 'Error parsing OpenAPI file:';
-      err.forEach((e: any) => {
-        errorMessage += `\n  - ${e.instancePath} ${e.message} ${JSON.stringify(e.params)}`;
-      });
+  } catch (err: unknown) {
+    if (err)
+      if (err instanceof SyntaxError) {
+        let errorMessage = 'Error parsing OpenAPI file:';
+        // @ts-expect-error These syntax errors are weird but this works I promise
+        err.forEach((e: unknown) => {
+          // @ts-expect-error same reason as above
+          errorMessage += `\n  - ${e.instancePath} ${e.message} ${JSON.stringify(e.params)}`;
+        });
+        logErrorAndExit(errorMessage);
+      }
+
+    if (err instanceof Error) {
+      let errorMessage = 'Unknown error parsing OpenAPI file:';
+      errorMessage += `\n${err.stack}`;
       logErrorAndExit(errorMessage);
     }
-    let errorMessage = 'Unknown error parsing OpenAPI file:';
-    errorMessage += `\n${err.stack}`;
-    logErrorAndExit(errorMessage);
+
+    logErrorAndExit('Unknown error parsing OpenAPI file');
   }
 
-  return api;
+  return api as OpenAPIDocument;
 }
