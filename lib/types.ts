@@ -1,5 +1,3 @@
-import OpenAPIParser from '@readme/openapi-parser';
-
 export type OpenAPITypes =
   | 'object'
   | 'integer'
@@ -15,10 +13,34 @@ export type PropertyDefinition = {
 };
 export type PropertiesMap = Record<string, PropertyDefinition>;
 
-export type OpenAPIDocument = OpenAPIParser['api'] & {
+type OpenApiResponse = Partial<{
+  description: string;
+  content: {
+    'application/json': {
+      schema: PropertiesMap;
+    };
+  };
+}>;
+type OpenApiMethods =
+  | 'get'
+  | 'post'
+  | 'put'
+  | 'delete'
+  | 'patch'
+  | 'options'
+  | 'head';
+type OpenApiMethodDefinition = Partial<{
+  description: string;
+  summary: string;
+  tags: string[];
+  responses: Record<string, OpenApiResponse>;
+}>;
+export type PathRoot = Record<OpenApiMethods, OpenApiMethodDefinition>;
+export type OpenAPIDocument = {
   components?: {
     schemas?: PropertiesMap;
   };
+  paths?: Record<string, PathRoot>;
 };
 
 type ProgramGenerateOption = {

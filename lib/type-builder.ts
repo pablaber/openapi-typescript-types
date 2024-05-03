@@ -1,6 +1,8 @@
+import { minimatch } from 'minimatch';
 import {
   OpenAPIDocument,
   OpenAPITypes,
+  PathRoot,
   ProgramOptions,
   PropertiesMap,
   PropertyDefinition,
@@ -96,6 +98,26 @@ export function generateTypes(
   }
 
   if (pathOptions.generate) {
+    const matchesAny = (path: string, options: string[]) => {
+      return options.some((pattern) => minimatch(path, pattern));
+    };
+    const paths = document.paths ?? {};
+
+    // Filter paths down
+    const pathsToGenerateMap = Object.entries(paths).reduce(
+      (acc, [pathName, pathInfo]) => {
+        if (pathOptions.include && !matchesAny(pathName, pathOptions.include))
+          return acc;
+        if (pathOptions.exclude && matchesAny(pathName, pathOptions.exclude))
+          return acc;
+        return {
+          ...acc,
+          [pathName]: pathInfo,
+        };
+      },
+      {},
+    ) as Record<string, PathRoot>;
+
     // TODO: paths
   }
 
