@@ -1,4 +1,10 @@
-import { OpenAPIDocument, OpenAPITypes, SchemaProperty } from './types';
+import {
+  OpenAPIDocument,
+  OpenAPITypes,
+  ProgramOptions,
+  PropertiesMap,
+  PropertyDefinition,
+} from './types';
 
 const INDENT_SIZE = 2;
 const getIndents = (level = 0) => ' '.repeat(level * INDENT_SIZE);
@@ -17,6 +23,7 @@ function openApiTypeToTypeScriptType(openApiType: OpenAPITypes): string {
       return 'number';
     case 'string':
     case 'boolean':
+    case 'number':
       return openApiType;
     default:
       throw new Error(`Cannot convert OpenAPI type to TS type: ${openApiType}`);
@@ -24,16 +31,16 @@ function openApiTypeToTypeScriptType(openApiType: OpenAPITypes): string {
 }
 
 /**
- * Given a schema property, will return the typescript string representation of
+ * Given a property name and definition, will return the TypeScript code for
  * that property. Will recursively call itself for nested objects or arrays.
  */
-function schemaTypeStringForProperty(
+function generateCodeForProperty(
   propertyName: string,
-  schemaProperty: SchemaProperty,
+  propertyDefinition: PropertyDefinition,
   level = 1,
-): string {
-  const { type, properties, items } = schemaProperty;
-  if (['string', 'integer', 'boolean'].includes(type)) {
+): string | null {
+  const { type, properties, items } = propertyDefinition;
+  if (['string', 'integer', 'boolean', 'number'].includes(type)) {
     return indented(
       `${propertyName}: ${openApiTypeToTypeScriptType(type)}`,
       level,
@@ -42,45 +49,83 @@ function schemaTypeStringForProperty(
   if (type === 'object') {
     let stringRep = indented(`${propertyName}: {\n`, level);
     Object.entries(properties ?? {}).forEach(([propName, prop]) => {
-      stringRep += `${schemaTypeStringForProperty(propName, prop, level + 1)};\n`;
+      const propTypeString = generateCodeForProperty(propName, prop, level + 1);
+      if (propTypeString) stringRep += `${propTypeString};\n`;
     });
     stringRep += indented('}', level);
     return stringRep;
   }
 
   if (type === 'array') {
-    if (!items) throw new Error('Array type must have items');
-    return `${schemaTypeStringForProperty(propertyName, items, level)}[]`;
+    if (!items) {
+      console.warn(
+        `  ! Property ${propertyName} is an array with no items. Skipping.`,
+      );
+      return null;
+    }
+    const propTypeString = generateCodeForProperty(propertyName, items, level);
+    if (propTypeString) return `${propTypeString}[]`;
   }
 
-  throw new Error(`Unsupported type: ${type}`);
+  console.warn(
+    `  ! Property ${propertyName} has unsupported type: ${type}. Skipping.`,
+  );
+  return null;
 }
-
-type GenerateTypesOptions = {
-  typeNameFormat?: string;
-};
 
 /**
  * Generates types from the given OpenAPIDocument and options.
  */
 export function generateTypes(
   document: OpenAPIDocument,
-  options: GenerateTypesOptions,
+  options: ProgramOptions,
 ): string[] {
-  const { typeNameFormat = '{name}' } = options;
-  const typeStringsArray: string[] = [];
+  const {
+    typeNameFormat = '{name}',
+    paths: pathOptions,
+    schemas: schemaOptions,
+  } = options;
 
-  // Schemas first, they're simple
-  const schemas = document.components?.schemas ?? {};
-  Object.entries(schemas).forEach(([name, schema]) => {
-    const typeName = typeNameFormat.replace('{name}', name);
-    let typeString = `export type ${typeName} = {\n`;
-    Object.entries(schema.properties ?? {}).forEach(([propName, prop]) => {
-      typeString += `${schemaTypeStringForProperty(propName, prop)};\n`;
-    });
-    typeString += '};\n';
-    typeStringsArray.push(typeString);
+  const allGeneratedTypes: string[] = [];
+
+  // Schemas
+  if (schemaOptions.generate) {
+    const schemas = document.components?.schemas ?? {};
+    const schemaTypes = generateTypesForMap(schemas, typeNameFormat);
+    allGeneratedTypes.push(...schemaTypes);
+  }
+
+  if (pathOptions.generate) {
+    // TODO: paths
+  }
+
+  return allGeneratedTypes;
+}
+
+function generateTypesForMap(
+  propertiesMap: PropertiesMap,
+  typeNameFormat: string,
+) {
+  const generatedTypesArray: string[] = [];
+
+  Object.entries(propertiesMap).forEach(([schemaName, schemaDefinition]) => {
+    const typeName = typeNameFormat.replace('{name}', schemaName);
+    let generatedTypeCode = `export type ${typeName} = {\n`;
+
+    // Iterate through the properties, generating the type string for each one.
+    Object.entries(schemaDefinition.properties ?? {}).forEach(
+      ([propertyName, propertyDefinition]) => {
+        const generatedPropertyCode = generateCodeForProperty(
+          propertyName,
+          propertyDefinition,
+        );
+        if (generatedPropertyCode)
+          generatedTypeCode += `${generatedPropertyCode};\n`;
+      },
+    );
+    generatedTypeCode += '};\n';
+    generatedTypesArray.push(generatedTypeCode);
   });
 
-  return typeStringsArray;
+  return generatedTypesArray;
 }

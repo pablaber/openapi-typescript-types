@@ -5,17 +5,49 @@ export type OpenAPITypes =
   | 'integer'
   | 'string'
   | 'array'
-  | 'boolean';
+  | 'boolean'
+  | 'number';
 
-export type SchemaProperty = {
+export type PropertyDefinition = {
   type: OpenAPITypes;
-  properties?: SchemaProperties;
-  items?: SchemaProperty;
+  properties?: PropertiesMap;
+  items?: PropertyDefinition;
 };
-type SchemaProperties = Record<string, SchemaProperty>;
+export type PropertiesMap = Record<string, PropertyDefinition>;
 
 export type OpenAPIDocument = OpenAPIParser['api'] & {
   components?: {
-    schemas?: Record<string, SchemaProperty>;
+    schemas?: PropertiesMap;
   };
 };
+
+type ProgramGenerateOption = {
+  generate: boolean;
+  include?: string[];
+  exclude?: string[];
+};
+
+export type ProgramOptions = {
+  input: string;
+  output: string;
+
+  paths: ProgramGenerateOption;
+  schemas: ProgramGenerateOption;
+
+  typeNameFormat?: string;
+};
+
+type YamlConfigGenerateOption =
+  | boolean
+  | { include?: string[]; exclude?: string[] };
+
+export type YamlConfig = Partial<{
+  version: number;
+  input: string;
+  output: string;
+  options: Partial<{
+    typeNameFormat: string;
+    paths: YamlConfigGenerateOption;
+    schemas: YamlConfigGenerateOption;
+  }>;
+}>;
