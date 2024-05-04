@@ -6,7 +6,8 @@ import {
   ProgramOptions,
   PropertiesMap,
   PropertyDefinition,
-} from './types';
+} from '../types';
+import { buildPathsPropertyMap } from './path-builder-utils';
 
 const INDENT_SIZE = 2;
 const getIndents = (level = 0) => ' '.repeat(level * INDENT_SIZE);
@@ -78,7 +79,7 @@ function generateCodeForProperty(
 /**
  * Generates types from the given OpenAPIDocument and options.
  */
-export function generateTypes(
+export function buildTypes(
   document: OpenAPIDocument,
   options: ProgramOptions,
 ): string[] {
@@ -98,27 +99,9 @@ export function generateTypes(
   }
 
   if (pathOptions.generate) {
-    const matchesAny = (path: string, options: string[]) => {
-      return options.some((pattern) => minimatch(path, pattern));
-    };
-    const paths = document.paths ?? {};
-
-    // Filter paths down
-    const pathsToGenerateMap = Object.entries(paths).reduce(
-      (acc, [pathName, pathInfo]) => {
-        if (pathOptions.include && !matchesAny(pathName, pathOptions.include))
-          return acc;
-        if (pathOptions.exclude && matchesAny(pathName, pathOptions.exclude))
-          return acc;
-        return {
-          ...acc,
-          [pathName]: pathInfo,
-        };
-      },
-      {},
-    ) as Record<string, PathRoot>;
-
-    // TODO: paths
+    const pathsPropertiesMap = buildPathsPropertyMap(document, options);
+    const pathTypes = generateTypesForMap(pathsPropertiesMap, typeNameFormat);
+    allGeneratedTypes.push(...pathTypes);
   }
 
   return allGeneratedTypes;
