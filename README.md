@@ -12,6 +12,18 @@ _Not yet implemented_
 
 ### Config File
 
+You can also run the program using a YAML configuration file. If the config file
+is named `ott.config.yaml` and stored in the current working directory,
+the script can be invoked with that config file by running:
+
+```bash
+ott --config ./ott.config.yaml
+```
+
+#### Config File Structure
+
+The structure and options for the config file are defined below:
+
 ```yaml
 version: 1.0               # The config version, only supports 1.0
 input: ./swagger.yaml      # The path to teh swagger file input
