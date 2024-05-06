@@ -1,8 +1,6 @@
-import { minimatch } from 'minimatch';
 import {
   OpenAPIDocument,
   OpenAPITypes,
-  PathRoot,
   ProgramOptions,
   PropertiesMap,
   PropertyDefinition,
@@ -11,7 +9,8 @@ import { buildPathsPropertyMap } from './path-builder-utils';
 
 const INDENT_SIZE = 2;
 const getIndents = (level = 0) => ' '.repeat(level * INDENT_SIZE);
-const indented = (text: string, level = 0) => `${getIndents(level)}${text}`;
+const indented = (text: string, level = 0, noIndent = false) =>
+  noIndent ? text : `${getIndents(level)}${text}`;
 
 /**
  * Simple function that returns the TypeScript type version for a given OpenAPI
@@ -33,40 +32,108 @@ function openApiTypeToTypeScriptType(openApiType: OpenAPITypes): string {
   }
 }
 
+type GenerateCodeForPropertyParams = {
+  propertyName?: string;
+  propertyDefinition: PropertyDefinition;
+  isRequired: boolean;
+  level?: number;
+};
+
 /**
  * Given a property name and definition, will return the TypeScript code for
  * that property. Will recursively call itself for nested objects or arrays.
  */
 function generateCodeForProperty(
-  propertyName: string,
-  propertyDefinition: PropertyDefinition,
-  level = 1,
+  params: GenerateCodeForPropertyParams,
 ): string | null {
-  const { type, properties, items } = propertyDefinition;
+  const { propertyName, propertyDefinition, isRequired, level = 1 } = params;
+  const unnamed = propertyName === undefined;
+
+  // TODO: support for "additionalProperties" key
+  let propertyPrefix = '';
+  if (!unnamed && isRequired) propertyPrefix = `${propertyName}: `;
+  if (!unnamed && !isRequired) propertyPrefix = `${propertyName}?: `;
+
+  const { type } = propertyDefinition;
   if (['string', 'integer', 'boolean', 'number'].includes(type)) {
     return indented(
-      `${propertyName}: ${openApiTypeToTypeScriptType(type)}`,
+      `${propertyPrefix}${openApiTypeToTypeScriptType(type)}`,
       level,
+      unnamed,
     );
   }
   if (type === 'object') {
-    let stringRep = indented(`${propertyName}: {\n`, level);
-    Object.entries(properties ?? {}).forEach(([propName, prop]) => {
-      const propTypeString = generateCodeForProperty(propName, prop, level + 1);
-      if (propTypeString) stringRep += `${propTypeString};\n`;
+    const { properties = {}, additionalProperties } = propertyDefinition;
+    const propertyEntries = Object.entries(properties);
+    const hasProperties = propertyEntries.length > 0;
+    const hasAdditionalProperties = !!additionalProperties;
+
+    if (!hasProperties && !hasAdditionalProperties) {
+      return indented(
+        `${propertyPrefix}Record<string, unknown>`,
+        level,
+        unnamed,
+      );
+    }
+
+    let propertiesTypeString = indented(propertyPrefix, level, unnamed);
+    if (hasProperties) {
+      propertiesTypeString += '{\n';
+      const innerRequiredProperties = propertyDefinition.required ?? [];
+      propertyEntries.forEach(([propName, prop]) => {
+        const innerIsRequired = innerRequiredProperties.includes(propName);
+        const propTypeString = generateCodeForProperty({
+          propertyName: propName,
+          propertyDefinition: prop,
+          isRequired: innerIsRequired,
+          level: level + 1,
+        });
+        if (propTypeString) propertiesTypeString += `${propTypeString};\n`;
+      });
+    }
+
+    // If there are no additional properties, we're good to return here
+    if (!additionalProperties) {
+      propertiesTypeString += indented('}', level);
+      return propertiesTypeString;
+    }
+
+    // Below here we're dealing with additional properties
+    // TODO: we should update generateCodeForProperty to be able to handle
+    // "unnamed" properties, and then we can use it here and at the main
+    // function as well.
+    const valuesType = generateCodeForProperty({
+      propertyDefinition: additionalProperties,
+      isRequired: false,
+      level: level,
     });
-    stringRep += indented('}', level);
-    return stringRep;
+    const additionalPropertiesTypeString = `Record<string, ${valuesType}>`;
+
+    // If there are already properties, we need to concatenate the additional
+    // properties Record with existing
+    if (hasProperties) {
+      return `${propertiesTypeString} & ${additionalPropertiesTypeString}`;
+    }
+    return indented(
+      `${propertyPrefix}${additionalPropertiesTypeString}`,
+      level,
+    );
   }
 
   if (type === 'array') {
+    const { items } = propertyDefinition;
     if (!items) {
       console.warn(
-        `  ! Property ${propertyName} is an array with no items. Skipping.`,
+        `  ! Property "${propertyName}" is an array with no items. Skipping.`,
       );
       return null;
     }
-    const propTypeString = generateCodeForProperty(propertyName, items, level);
+    const propTypeString = generateCodeForProperty({
+      propertyName: propertyName,
+      propertyDefinition: items,
+      isRequired,
+      level,
+    });
     if (propTypeString) return `${propTypeString}[]`;
   }
 
@@ -116,14 +183,16 @@ function generateTypesForMap(
   Object.entries(propertiesMap).forEach(([schemaName, schemaDefinition]) => {
     const typeName = typeNameFormat.replace('{name}', schemaName);
     let generatedTypeCode = `export type ${typeName} = {\n`;
-
+    const requiredProperties = schemaDefinition.required ?? [];
     // Iterate through the properties, generating the type string for each one.
     Object.entries(schemaDefinition.properties ?? {}).forEach(
       ([propertyName, propertyDefinition]) => {
-        const generatedPropertyCode = generateCodeForProperty(
+        const isRequired = requiredProperties.includes(propertyName);
+        const generatedPropertyCode = generateCodeForProperty({
           propertyName,
           propertyDefinition,
-        );
+          isRequired,
+        });
         if (generatedPropertyCode)
           generatedTypeCode += `${generatedPropertyCode};\n`;
       },
