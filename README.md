@@ -6,13 +6,9 @@ A library for generating Typescript types from an OpenAPI document.
 
 The script can either be run through the command line or with a config file.
 
-### Command Line
-
-_Not yet implemented_
-
 ### Config File
 
-You can also run the program using a YAML configuration file. If the config file
+The preferred way of running `ott` is by using a config file. If the config file
 is named `ott.config.yaml` and stored in the current working directory,
 the script can be invoked with that config file by running:
 
@@ -46,3 +42,26 @@ options:                   # Additional options (optional)
     exclude:               # List specific paths to exclude
       - Customer           #   - Has no effect if "include" is specified
 ```
+
+### Command Line
+
+The script can also be run through the command line, although the options are
+more limited than the config file.
+
+You can always run `ott --help` for the most detailed and up to date explanation
+of the command line options.
+
+#### Command Line Example
+
+Below is an example of invoking the command to generate a types file without
+schemas that will be named `petstore-types.ts` from an input file of 
+`petstore.yaml`.
+
+```bash
+ott \
+  --input petstore.yaml \
+  --output petstore-types.ts \
+  --exclude-schemas;
+```
+
+

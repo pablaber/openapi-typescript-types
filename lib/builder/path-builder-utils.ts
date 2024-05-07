@@ -17,7 +17,7 @@ function buildPathName(
 ): string {
   const camelCaseMethod = upperCaseFirstLetter(methodKey);
   const transformedPath = pathName
-    .split('/')
+    .split(/\/|-/)
     .map((pathPart: string) => {
       const isVariable = pathPart.startsWith('{');
       const pathPartName = isVariable ? pathPart.slice(1, -1) : pathPart;

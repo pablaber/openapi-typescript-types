@@ -2,12 +2,36 @@ import { program } from 'commander';
 import yaml from 'js-yaml';
 import fs from 'fs';
 import type { ProgramOptions, YamlConfig } from './types';
+import * as packageJson from '../package.json';
 
 export function getProgramOptions(): ProgramOptions {
-  const { config: configPath } = program
-    .option('-c, --config <config>', 'Config file path')
-    .parse()
-    .opts();
+  // Define program name and information.
+  program
+    .name('ott')
+    .description('Generate TypeScript types from an OpenAPI schema')
+    .version(packageJson.version, '-v, --version');
+
+  // Define program options
+  program
+    .option(
+      '-c, --config <config>',
+      'use a config file for options, no other command line options are honored',
+    )
+    .option(
+      '-i, --input <input>',
+      'specify the input OpenAPI schema file (e.g. petstore.yaml)',
+    )
+    .option(
+      '-o, --output <output>',
+      'specify the output type file (e.g. out/petstore-types.ts)',
+    )
+    .option('--exclude-paths', 'do not generate path types', false)
+    .option('--exclude-schemas', 'do not generate schema types', false);
+
+  // Parse all options
+  program.parse();
+
+  const { config: configPath } = program.opts();
 
   if (configPath !== undefined) return getConfigFileOptions(configPath);
   return getCommandLineOptions();
@@ -66,7 +90,7 @@ function getConfigFileOptions(configFilePath: string): ProgramOptions {
     schemasExclude = schemas.exclude;
   }
 
-  // Totally Optional
+  // Totally Optional (TODO: removed implementation for initial release anyways)
   const { typeNameFormat } = options;
   if (
     typeof typeNameFormat !== 'string' &&
@@ -95,19 +119,8 @@ function getConfigFileOptions(configFilePath: string): ProgramOptions {
 }
 
 function getCommandLineOptions(): ProgramOptions {
-  const {
-    input,
-    output = 'openapi-typescript-types.ts',
-    typeNameFormat,
-  } = program
-    .option('--input <input>', 'Input OpenAPI file')
-    .option('--output <output>', 'Output file (e.g. out/types.ts)')
-    .option(
-      '--type-name-format <typeNameFormat>',
-      'Type name format (e.g. MyApi{name}, default: {name})',
-    )
-    .parse()
-    .opts();
+  const { input, output, typeNameFormat, excludePaths, excludeSchemas } =
+    program.opts();
 
   if (typeof input !== 'string') {
     throw new Error('Input file is required');
@@ -122,11 +135,21 @@ function getCommandLineOptions(): ProgramOptions {
     throw new Error('Type name format must be a string');
   }
 
+  if (typeof excludePaths !== 'boolean') {
+    throw new Error('Exclude paths must be a boolean');
+  }
+  if (typeof excludeSchemas !== 'boolean') {
+    throw new Error('Exclude schemas must be a boolean');
+  }
+  if (excludePaths && excludeSchemas) {
+    throw new Error('Cannot exclude both paths and schemas');
+  }
+
   return {
     input,
     output,
     typeNameFormat,
-    paths: { generate: true },
-    schemas: { generate: true },
+    paths: { generate: !excludePaths },
+    schemas: { generate: !excludeSchemas },
   };
 }

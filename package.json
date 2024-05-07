@@ -1,16 +1,29 @@
 {
   "name": "openapi-typescript-types",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "A tool used to generate types from OpenAPI 3.x schemas",
+  "author": "Patrick Bacon-Blaber",
+  "license": "ISC",
+  "keywords": [
+    "openapi",
+    "swagger",
+    "typescript",
+    "ts",
+    "types",
+    "type",
+    "generation",
+    "generator",
+    "generate"
+  ],
+  "main": "./dist/main.js",
+  "bin": {
+    "ott": "./dist/main.js"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.1.1",
     "@types/js-yaml": "^4.0.9",
