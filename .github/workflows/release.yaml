@@ -28,3 +28,18 @@ jobs:
         if: ${{ steps.publish.outputs.release_created }}
         with:
           node-version-file: .nvmrc
+
+      - name: Install Dependencies
+        run: npm install
+        if: ${{ steps.publish.outputs.release_created }}
+        
+      - name: Run Build
+        run: npm run build
+        if: ${{ steps.publish.outputs.release_created }}
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        if: ${{ steps.publish.outputs.release_created }}
+      
