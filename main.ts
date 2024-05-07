@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 import { getProgramOptions } from './lib/options';
 import { parseOpenAPIFile } from './lib/openapi-parser';
 import { buildTypes } from './lib/builder/type-builder';
