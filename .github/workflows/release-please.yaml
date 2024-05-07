@@ -1,0 +1,30 @@
+name: 🕵🏻‍♂️ Release Check
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        id: publish
+        with:
+          release-type: node
+          package-name: '@pablaber/openapi-typescript-types'
+          changelog-types: '[{"type":"feat","section":"Features","hidden":false},{"type":"fix","section":"Bug Fixes","hidden":false},{"type":"chore","section":"Miscellaneous","hidden":false}]'
+
+      - uses: actions/checkout@v3
+        if: ${{ steps.publish.outputs.release_created }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        if: ${{ steps.publish.outputs.release_created }}
+        with:
+          node-version-file: .nvmrc
