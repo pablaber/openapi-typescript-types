@@ -33,6 +33,7 @@ function openApiTypeToTypeScriptType(openApiType: OpenAPITypes): string {
 }
 
 type GenerateCodeForPropertyParams = {
+  currentPath?: string[];
   propertyName?: string;
   propertyDefinition: PropertyDefinition;
   isRequired: boolean;
@@ -46,7 +47,13 @@ type GenerateCodeForPropertyParams = {
 function generateCodeForProperty(
   params: GenerateCodeForPropertyParams,
 ): string | null {
-  const { propertyName, propertyDefinition, isRequired, level = 1 } = params;
+  const {
+    propertyName,
+    propertyDefinition,
+    isRequired,
+    currentPath = [],
+    level = 1,
+  } = params;
   const unnamed = propertyName === undefined;
 
   // TODO: support for "additionalProperties" key
@@ -63,6 +70,9 @@ function generateCodeForProperty(
     );
   }
   if (type === 'object') {
+    const nextPath = [...currentPath];
+    if (propertyName !== undefined) nextPath.push(propertyName);
+
     const { properties = {}, additionalProperties } = propertyDefinition;
     const propertyEntries = Object.entries(properties);
     const hasProperties = propertyEntries.length > 0;
@@ -83,6 +93,7 @@ function generateCodeForProperty(
       propertyEntries.forEach(([propName, prop]) => {
         const innerIsRequired = innerRequiredProperties.includes(propName);
         const propTypeString = generateCodeForProperty({
+          currentPath: nextPath,
           propertyName: propName,
           propertyDefinition: prop,
           isRequired: innerIsRequired,
@@ -103,6 +114,7 @@ function generateCodeForProperty(
     // "unnamed" properties, and then we can use it here and at the main
     // function as well.
     const valuesType = generateCodeForProperty({
+      currentPath: nextPath,
       propertyDefinition: additionalProperties,
       isRequired: false,
       level: level,
@@ -123,12 +135,15 @@ function generateCodeForProperty(
   if (type === 'array') {
     const { items } = propertyDefinition;
     if (!items) {
+      const currentPathString = `${currentPath.join('.')}.${propertyName}`;
       console.warn(
-        `  ! Property "${propertyName}" is an array with no items. Skipping.`,
+        `  ⚠️ ${currentPathString} is an array with no items. Skipping.`,
       );
       return null;
     }
+    const nextPath = [...currentPath, 'items[]'];
     const propTypeString = generateCodeForProperty({
+      currentPath: nextPath,
       propertyName: propertyName,
       propertyDefinition: items,
       isRequired,
@@ -137,8 +152,9 @@ function generateCodeForProperty(
     if (propTypeString) return `${propTypeString}[]`;
   }
 
+  const currentPathString = `${currentPath.join('.')}.${propertyName}`;
   console.warn(
-    `  ! Property ${propertyName} has unsupported type: ${type}. Skipping.`,
+    `  ⚠️ ${currentPathString} has unsupported type: ${type}. Skipping.`,
   );
   return null;
 }
@@ -189,6 +205,7 @@ function generateTypesForMap(
       ([propertyName, propertyDefinition]) => {
         const isRequired = requiredProperties.includes(propertyName);
         const generatedPropertyCode = generateCodeForProperty({
+          currentPath: [schemaName],
           propertyName,
           propertyDefinition,
           isRequired,
