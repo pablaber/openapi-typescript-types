@@ -19,6 +19,10 @@
   "bin": {
     "ott": "./dist/main.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pablaber/openapi-typescript-types/"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "eslint .",

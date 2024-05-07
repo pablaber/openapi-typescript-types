@@ -61,7 +61,7 @@ schemas that will be named `petstore-types.ts` from an input file of
 ott \
   --input petstore.yaml \
   --output petstore-types.ts \
-  --exclude-schemas;
+  --exclude-schemas
 ```
 
 
