@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 import fs from 'fs';
 import type { ProgramOptions, YamlConfig } from './types';
 import * as packageJson from '../package.json';
+import logger from './logger';
 
 export function getProgramOptions(): ProgramOptions {
   // Define program name and information.
@@ -13,9 +14,10 @@ export function getProgramOptions(): ProgramOptions {
 
   // Define program options
   program
+    .option('-d, --debug', 'output additional debugging information', false)
     .option(
       '-c, --config <config>',
-      'use a config file for options, no other command line options are honored',
+      'use a config file for options, no further options are needed',
     )
     .option(
       '-i, --input <input>',
@@ -31,13 +33,15 @@ export function getProgramOptions(): ProgramOptions {
   // Parse all options
   program.parse();
 
-  const { config: configPath } = program.opts();
+  const { config: configPath, debug = false } = program.opts();
+  logger.level = debug ? 'debug' : 'info';
 
   if (configPath !== undefined) return getConfigFileOptions(configPath);
   return getCommandLineOptions();
 }
 
 function getConfigFileOptions(configFilePath: string): ProgramOptions {
+  logger.debug('getting program options from config file');
   function readYamlFile(filePath: string) {
     try {
       const fileContents = fs.readFileSync(filePath);
@@ -119,6 +123,7 @@ function getConfigFileOptions(configFilePath: string): ProgramOptions {
 }
 
 function getCommandLineOptions(): ProgramOptions {
+  logger.debug('getting program options from command line');
   const { input, output, typeNameFormat, excludePaths, excludeSchemas } =
     program.opts();
 

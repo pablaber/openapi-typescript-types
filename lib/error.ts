@@ -1,4 +1,6 @@
+import logger from './logger';
+
 export function logErrorAndExit(message: string, exitCode: number = 1): never {
-  console.error(message);
+  logger.error(message);
   process.exit(exitCode);
 }
