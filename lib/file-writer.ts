@@ -1,4 +1,5 @@
 import fs from 'fs';
+import logger from './logger';
 
 export function writeTypesToFile(types: string[], outputPath: string): void {
   // Ensure the output directory exists
@@ -10,4 +11,5 @@ export function writeTypesToFile(types: string[], outputPath: string): void {
   toWrite += types.join('\n');
   toWrite += '\n';
   fs.writeFileSync(outputPath, toWrite);
+  logger.info(`wrote types to ${outputPath}`);
 }

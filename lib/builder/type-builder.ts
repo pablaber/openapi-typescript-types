@@ -6,6 +6,7 @@ import {
   PropertyDefinition,
 } from '../types';
 import { buildPathsPropertyMap } from './path-builder-utils';
+import logger from '../logger';
 
 const INDENT_SIZE = 2;
 const getIndents = (level = 0) => ' '.repeat(level * INDENT_SIZE);
@@ -136,9 +137,7 @@ function generateCodeForProperty(
     const { items } = propertyDefinition;
     if (!items) {
       const currentPathString = `${currentPath.join('.')}.${propertyName}`;
-      console.warn(
-        `  ⚠️ ${currentPathString} is an array with no items. Skipping.`,
-      );
+      logger.warn(`${currentPathString} is an array with no items. Skipping.`);
       return null;
     }
     const nextPath = [...currentPath, 'items[]'];
@@ -153,9 +152,7 @@ function generateCodeForProperty(
   }
 
   const currentPathString = `${currentPath.join('.')}.${propertyName}`;
-  console.warn(
-    `  ⚠️ ${currentPathString} has unsupported type: ${type}. Skipping.`,
-  );
+  logger.warn(`${currentPathString} has unsupported type: ${type}. Skipping.`);
   return null;
 }
 
@@ -166,6 +163,7 @@ export function buildTypes(
   document: OpenAPIDocument,
   options: ProgramOptions,
 ): string[] {
+  logger.debug('starting type generation');
   const {
     typeNameFormat = '{name}',
     paths: pathOptions,
@@ -176,17 +174,22 @@ export function buildTypes(
 
   // Schemas
   if (schemaOptions.generate) {
+    logger.debug('generating types for schemas');
     const schemas = document.components?.schemas ?? {};
     const schemaTypes = generateTypesForMap(schemas, typeNameFormat);
     allGeneratedTypes.push(...schemaTypes);
+    logger.debug(`generated ${schemaTypes.length} types from schemas`);
   }
 
   if (pathOptions.generate) {
+    logger.debug('generating types for paths');
     const pathsPropertiesMap = buildPathsPropertyMap(document, options);
     const pathTypes = generateTypesForMap(pathsPropertiesMap, typeNameFormat);
     allGeneratedTypes.push(...pathTypes);
+    logger.debug(`generated ${pathTypes.length} types from paths`);
   }
 
+  logger.debug('finished type generation');
   return allGeneratedTypes;
 }
 

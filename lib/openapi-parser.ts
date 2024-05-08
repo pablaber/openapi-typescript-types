@@ -1,6 +1,8 @@
 import OpenAPIParser from '@readme/openapi-parser';
+
 import { logErrorAndExit } from './error';
 import type { OpenAPIDocument } from './types';
+import logger from './logger';
 
 export async function parseOpenAPIFile(
   pathToOpenApi: string,
@@ -8,6 +10,7 @@ export async function parseOpenAPIFile(
   let api;
   try {
     api = await OpenAPIParser.validate(pathToOpenApi);
+    logger.debug('parsed OpenAPI file successfully');
   } catch (err: unknown) {
     if (err)
       if (err instanceof SyntaxError) {
