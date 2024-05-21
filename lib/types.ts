@@ -11,6 +11,7 @@ export type OpenAPITypes =
 export type PropertyDefinition = {
   type: OpenAPITypes;
   nullable?: boolean;
+  enum?: string[];
   required?: string[];
   properties?: PropertiesMap;
   additionalProperties?: PropertyDefinition;
