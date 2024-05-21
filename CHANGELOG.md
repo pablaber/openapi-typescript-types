@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/pablaber/openapi-typescript-types/compare/v0.1.1...v0.2.0) (2024-05-21)
+
+
+### Features
+
+* add support for nullable fields ([#19](https://github.com/pablaber/openapi-typescript-types/issues/19)) ([774b4f3](https://github.com/pablaber/openapi-typescript-types/commit/774b4f3e39f8901fd83cbbb3699d08ccc676bb4d))
+* add winston logging ([#16](https://github.com/pablaber/openapi-typescript-types/issues/16)) ([5fe53e1](https://github.com/pablaber/openapi-typescript-types/commit/5fe53e1bea12ea5fb10e35c5a8c13ae9a7733425))
+* enum types ([#21](https://github.com/pablaber/openapi-typescript-types/issues/21)) ([7685ba5](https://github.com/pablaber/openapi-typescript-types/commit/7685ba5fcffc3d349f7076b6bf220e31776cc78e))
+
+
+### Bug Fixes
+
+* also support nullable objects and arrays ([#20](https://github.com/pablaber/openapi-typescript-types/issues/20)) ([c298bdd](https://github.com/pablaber/openapi-typescript-types/commit/c298bdddd861d8f8fe82cfb89b5e3ef2e64ff213))
+
 ## [0.1.1](https://github.com/pablaber/openapi-typescript-types/compare/v0.1.0...v0.1.1) (2024-05-07)
 
 
