@@ -14,6 +14,13 @@ const indented = (text: string, level = 0, noIndent = false) =>
   noIndent ? text : `${getIndents(level)}${text}`;
 
 /**
+ * Wraps the given string in the Nullable type if the nullable flag is true.
+ */
+function wrapNullable(type: string, nullable: boolean): string {
+  return nullable ? `Nullable<${type}>` : type;
+}
+
+/**
  * Simple function that returns the TypeScript type version for a given OpenAPI
  * type. As of now this simply just maps the integer type to number and leaves
  * the rest as is.
@@ -64,10 +71,10 @@ function generateCodeForProperty(
 
   const { type, nullable = false } = propertyDefinition;
   if (['string', 'integer', 'boolean', 'number'].includes(type)) {
-    let basicTypeString = openApiTypeToTypeScriptType(type);
-    if (nullable) {
-      basicTypeString = `Nullable<${basicTypeString}>`;
-    }
+    const basicTypeString = wrapNullable(
+      openApiTypeToTypeScriptType(type),
+      nullable,
+    );
     return indented(`${propertyPrefix}${basicTypeString}`, level, unnamed);
   }
   if (type === 'object') {
@@ -80,14 +87,12 @@ function generateCodeForProperty(
     const hasAdditionalProperties = !!additionalProperties;
 
     if (!hasProperties && !hasAdditionalProperties) {
-      return indented(
-        `${propertyPrefix}Record<string, unknown>`,
-        level,
-        unnamed,
-      );
+      const basicTypeString = wrapNullable('Record<string, unknown>', nullable);
+      return indented(`${propertyPrefix}${basicTypeString}`, level, unnamed);
     }
 
-    let propertiesTypeString = indented(propertyPrefix, level, unnamed);
+    const indentedPropertyPrefix = indented(propertyPrefix, level, unnamed);
+    let propertiesTypeString = '';
     if (hasProperties) {
       propertiesTypeString += '{\n';
       const innerRequiredProperties = propertyDefinition.required ?? [];
@@ -104,16 +109,15 @@ function generateCodeForProperty(
       });
     }
 
+    propertiesTypeString = wrapNullable(propertiesTypeString, nullable);
+
     // If there are no additional properties, we're good to return here
     if (!additionalProperties) {
       propertiesTypeString += indented('}', level);
-      return propertiesTypeString;
+      return `${indentedPropertyPrefix}${propertiesTypeString}`;
     }
 
     // Below here we're dealing with additional properties
-    // TODO: we should update generateCodeForProperty to be able to handle
-    // "unnamed" properties, and then we can use it here and at the main
-    // function as well.
     const valuesType = generateCodeForProperty({
       currentPath: nextPath,
       propertyDefinition: additionalProperties,
@@ -125,7 +129,7 @@ function generateCodeForProperty(
     // If there are already properties, we need to concatenate the additional
     // properties Record with existing
     if (hasProperties) {
-      return `${propertiesTypeString} & ${additionalPropertiesTypeString}`;
+      return `${indentedPropertyPrefix}${propertiesTypeString} & ${additionalPropertiesTypeString}`;
     }
     return indented(
       `${propertyPrefix}${additionalPropertiesTypeString}`,
@@ -148,7 +152,7 @@ function generateCodeForProperty(
       isRequired,
       level,
     });
-    if (propTypeString) return `${propTypeString}[]`;
+    if (propTypeString) return wrapNullable(`${propTypeString}[]`, nullable);
   }
 
   const currentPathString = `${currentPath.join('.')}.${propertyName}`;
