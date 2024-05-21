@@ -62,13 +62,13 @@ function generateCodeForProperty(
   if (!unnamed && isRequired) propertyPrefix = `${propertyName}: `;
   if (!unnamed && !isRequired) propertyPrefix = `${propertyName}?: `;
 
-  const { type } = propertyDefinition;
+  const { type, nullable = false } = propertyDefinition;
   if (['string', 'integer', 'boolean', 'number'].includes(type)) {
-    return indented(
-      `${propertyPrefix}${openApiTypeToTypeScriptType(type)}`,
-      level,
-      unnamed,
-    );
+    let basicTypeString = openApiTypeToTypeScriptType(type);
+    if (nullable) {
+      basicTypeString = `Nullable<${basicTypeString}>`;
+    }
+    return indented(`${propertyPrefix}${basicTypeString}`, level, unnamed);
   }
   if (type === 'object') {
     const nextPath = [...currentPath];
