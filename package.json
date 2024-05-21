@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "create-executable": "npm run build && npm i -g",
     "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

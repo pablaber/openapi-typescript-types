@@ -4,7 +4,7 @@ import logger from './lib/logger';
 import { getProgramOptions } from './lib/options';
 import { parseOpenAPIFile } from './lib/openapi-parser';
 import { buildTypes } from './lib/builder/type-builder';
-import { writeTypesToFile } from './lib/file-writer';
+import { writeTypesToFile } from './lib/writer/file-writer';
 
 async function main() {
   try {
