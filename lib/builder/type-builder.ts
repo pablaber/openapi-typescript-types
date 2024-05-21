@@ -64,12 +64,24 @@ function generateCodeForProperty(
   } = params;
   const unnamed = propertyName === undefined;
 
-  // TODO: support for "additionalProperties" key
   let propertyPrefix = '';
   if (!unnamed && isRequired) propertyPrefix = `${propertyName}: `;
   if (!unnamed && !isRequired) propertyPrefix = `${propertyName}?: `;
 
-  const { type, nullable = false } = propertyDefinition;
+  const {
+    type,
+    nullable = false,
+    enum: enumValues = false,
+  } = propertyDefinition;
+
+  // Handle enums before any basic types
+  if (enumValues && enumValues.length > 0) {
+    const enumString = enumValues.map((val) => `'${val}'`).join(' | ');
+    // See "Nullable enums" section here https://swagger.io/docs/specification/data-models/enums/
+    // for why we do not need to wrap the enum in a Nullable type
+    return indented(`${propertyPrefix}${enumString}`, level, unnamed);
+  }
+
   if (['string', 'integer', 'boolean', 'number'].includes(type)) {
     const basicTypeString = wrapNullable(
       openApiTypeToTypeScriptType(type),
