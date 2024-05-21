@@ -10,6 +10,7 @@ export type OpenAPITypes =
 /** Along with PropertiesMap, creates recursive structure of the OpenAPI doc. */
 export type PropertyDefinition = {
   type: OpenAPITypes;
+  nullable?: boolean;
   required?: string[];
   properties?: PropertiesMap;
   additionalProperties?: PropertyDefinition;
