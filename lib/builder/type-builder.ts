@@ -5,7 +5,7 @@ import {
   PropertiesMap,
   PropertyDefinition,
 } from '../types';
-import { buildPathsPropertyMap } from './path-builder-utils';
+import { buildPathsComponentsMap } from './path-builder-utils';
 import logger from '../logger';
 
 const INDENT_SIZE = 2;
@@ -70,9 +70,35 @@ function generateCodeForProperty(
 
   const {
     type,
+    oneOf,
+    anyOf,
+    allOf,
     nullable = false,
     enum: enumValues = false,
   } = propertyDefinition;
+
+  // Handle oneOf or anyOf arrays with a union type
+  if (oneOf || anyOf || allOf) {
+    const propertyDefinitionArray = oneOf || anyOf || allOf;
+    const typeCombinator = oneOf || anyOf ? ' | ' : ' & ';
+    const propertyDefinitionCodeBlocks = propertyDefinitionArray?.map(
+      (unionTypePropertyDefinition, i) => {
+        return generateCodeForProperty({
+          currentPath: [...currentPath, 'oneOf', i.toString()],
+          propertyDefinition: unionTypePropertyDefinition,
+          isRequired: false,
+          level,
+        });
+      },
+    );
+    if (propertyDefinitionCodeBlocks && propertyDefinitionCodeBlocks.length) {
+      return indented(
+        `${propertyPrefix}${propertyDefinitionCodeBlocks.join(typeCombinator)}`,
+        level,
+        unnamed,
+      );
+    }
+  }
 
   // Handle enums before any basic types
   if (enumValues && enumValues.length > 0) {
@@ -121,12 +147,10 @@ function generateCodeForProperty(
       });
     }
 
-    propertiesTypeString = wrapNullable(propertiesTypeString, nullable);
-
     // If there are no additional properties, we're good to return here
     if (!additionalProperties) {
       propertiesTypeString += indented('}', level);
-      return `${indentedPropertyPrefix}${propertiesTypeString}`;
+      return `${indentedPropertyPrefix}${wrapNullable(propertiesTypeString, nullable)}`;
     }
 
     // Below here we're dealing with additional properties
@@ -141,7 +165,7 @@ function generateCodeForProperty(
     // If there are already properties, we need to concatenate the additional
     // properties Record with existing
     if (hasProperties) {
-      return `${indentedPropertyPrefix}${propertiesTypeString} & ${additionalPropertiesTypeString}`;
+      return `${indentedPropertyPrefix}${wrapNullable(propertiesTypeString, nullable)} & ${additionalPropertiesTypeString}`;
     }
     return indented(
       `${propertyPrefix}${additionalPropertiesTypeString}`,
@@ -199,10 +223,13 @@ export function buildTypes(
 
   if (pathOptions.generate) {
     logger.debug('generating types for paths');
-    const pathsPropertiesMap = buildPathsPropertyMap(document, options);
-    const pathTypes = generateTypesForMap(pathsPropertiesMap, typeNameFormat);
-    allGeneratedTypes.push(...pathTypes);
-    logger.debug(`generated ${pathTypes.length} types from paths`);
+    const pathComponentsMap = buildPathsComponentsMap(document, options);
+    const pathResponseTypes = generateTypesForMap(
+      pathComponentsMap,
+      typeNameFormat,
+    );
+    allGeneratedTypes.push(...pathResponseTypes);
+    logger.debug(`generated ${pathResponseTypes.length} types from paths`);
   }
 
   logger.debug('finished type generation');

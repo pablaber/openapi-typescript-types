@@ -10,11 +10,7 @@ import {
 /**
  * Builds a typescript name for the given path and method.
  */
-function buildPathName(
-  pathName: string,
-  methodKey: string,
-  status: string,
-): string {
+function buildPathNameBase(pathName: string, methodKey: string): string {
   const camelCaseMethod = upperCaseFirstLetter(methodKey);
   const transformedPath = pathName
     .split(/\/|-/)
@@ -26,8 +22,29 @@ function buildPathName(
         : upperCaseFirstLetter(pathPartName);
     })
     .join('');
+  return `${camelCaseMethod}${transformedPath}`;
+}
+
+/**
+ * Generates the typescript response type name for the given path, method, and
+ * response status.
+ */
+function buildResponseTypeName(
+  pathName: string,
+  methodKey: string,
+  status: string,
+): string {
+  const methodAndPathName = buildPathNameBase(pathName, methodKey);
   const statusText = textForStatus(status);
-  return `${camelCaseMethod}${transformedPath}${statusText}Response`;
+  return `${methodAndPathName}${statusText}Response`;
+}
+
+/**
+ * Generates the typescript request body type name for the given path and method
+ */
+function buildRequestBodyTypeName(pathName: string, methodKey: string): string {
+  const methodAndPathName = buildPathNameBase(pathName, methodKey);
+  return `${methodAndPathName}RequestBody`;
 }
 
 /**
@@ -71,29 +88,38 @@ function buildPathPropertyEntries(
   pathInfo: PathRoot,
 ): Record<string, PropertiesMap> {
   return Object.entries(pathInfo).reduce((acc, [methodKey, methodInfo]) => {
+    const { requestBody } = methodInfo;
+    const requestBodyToAppend: Record<string, PropertiesMap> = {};
+    if (requestBody?.content?.['application/json']?.schema) {
+      requestBodyToAppend[buildRequestBodyTypeName(pathName, methodKey)] =
+        requestBody.content['application/json'].schema;
+    }
+
     const propertiesMap = getPropertiesMapsFromMethodInfo(methodInfo);
-    const propertiesToAppend = Object.entries(propertiesMap).reduce(
+    const responsesToAppend = Object.entries(propertiesMap).reduce(
       (acc, [status, propertiesMap]) => {
         return {
           ...acc,
-          [buildPathName(pathName, methodKey, status)]: propertiesMap,
+          [buildResponseTypeName(pathName, methodKey, status)]: propertiesMap,
         };
       },
       {},
     );
+
     return {
       ...acc,
-      ...propertiesToAppend,
+      ...responsesToAppend,
+      ...requestBodyToAppend,
     };
   }, {});
 }
 
 /**
  * Will filter out the correct paths based on the options provided and then
- * return a full properties map for all of the matching routes, their methods,
- * and response codes.
+ * return a full properties map for all of the matching routes, their request
+ * bodies, their methods, and response codes.
  */
-export function buildPathsPropertyMap(
+export function buildPathsComponentsMap(
   document: OpenAPIDocument,
   options: ProgramOptions,
 ): PropertiesMap {

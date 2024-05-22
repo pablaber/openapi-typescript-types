@@ -11,6 +11,9 @@ export type OpenAPITypes =
 export type PropertyDefinition = {
   type: OpenAPITypes;
   nullable?: boolean;
+  oneOf?: PropertyDefinition[];
+  anyOf?: PropertyDefinition[];
+  allOf?: PropertyDefinition[];
   enum?: string[];
   required?: string[];
   properties?: PropertiesMap;
@@ -31,22 +34,22 @@ export type OpenApiMethods =
   | 'options'
   | 'head';
 
+type ApplicationJsonSchema = {
+  description?: string;
+  content?: {
+    'application/json'?: {
+      schema?: PropertiesMap;
+    };
+  };
+};
+
 /**
  * An entry for a method within a path. The string keys are the status codes
  * that are supported for that given method of a path.
  */
 export type OpenApiPathMethodEntry = Partial<{
-  responses: Record<
-    string,
-    {
-      description?: string;
-      content?: {
-        'application/json'?: {
-          schema?: PropertiesMap;
-        };
-      };
-    }
-  >;
+  requestBody: ApplicationJsonSchema;
+  responses: Record<string, ApplicationJsonSchema>;
 }>;
 
 /** The structure of an OpenAPI path. */
