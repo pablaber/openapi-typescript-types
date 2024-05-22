@@ -28,7 +28,6 @@ export function writeTypesToFile(types: string[], outputPath: string): void {
 
   // Append the types to the output file
   toWrite += types.join('\n');
-  toWrite += '\n';
   fs.writeFileSync(outputPath, toWrite);
   logger.info(`wrote types to ${outputPath}`);
 }
