@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/pablaber/openapi-typescript-types/compare/v0.2.1...v0.3.0) (2024-05-22)
+
+
+### Features
+
+* anyOf, allOf, someOf, and requestBodies support ([#24](https://github.com/pablaber/openapi-typescript-types/issues/24)) ([f2b4949](https://github.com/pablaber/openapi-typescript-types/commit/f2b4949337cde98c28579391cce3a35d9f54290f))
+
 ## [0.2.1](https://github.com/pablaber/openapi-typescript-types/compare/v0.2.0...v0.2.1) (2024-05-22)
 
 
