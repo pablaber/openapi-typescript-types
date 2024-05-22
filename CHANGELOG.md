@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.1](https://github.com/pablaber/openapi-typescript-types/compare/v0.2.0...v0.2.1) (2024-05-22)
+
+
+### Bug Fixes
+
+* fixed broken types base file in build ([d5895f7](https://github.com/pablaber/openapi-typescript-types/commit/d5895f70232cbf5d0a847b81de4cd04c472fd861))
+
+
+### Miscellaneous
+
+* hopefully fix publish script ([33adbbb](https://github.com/pablaber/openapi-typescript-types/commit/33adbbb471b3d3f19904026fe029b1e4f8ff16ba))
+
 ## [0.2.0](https://github.com/pablaber/openapi-typescript-types/compare/v0.1.1...v0.2.0) (2024-05-21)
 
 
