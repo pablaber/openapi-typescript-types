@@ -93,7 +93,7 @@ function generateCodeForProperty(
     );
     if (propertyDefinitionCodeBlocks && propertyDefinitionCodeBlocks.length) {
       return indented(
-        `${propertyPrefix}${propertyDefinitionCodeBlocks.join(typeCombinator)}`,
+        `${propertyPrefix}(${propertyDefinitionCodeBlocks.join(typeCombinator)})`,
         level,
         unnamed,
       );
