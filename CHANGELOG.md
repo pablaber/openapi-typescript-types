@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.0...v0.3.1) (2024-05-23)
+
+
+### Bug Fixes
+
+* add groupings to nested unions and intersections ([#26](https://github.com/pablaber/openapi-typescript-types/issues/26)) ([c210f48](https://github.com/pablaber/openapi-typescript-types/commit/c210f48da599e1c51da52f04f3b222ddd8bbc4ed))
+
 ## [0.3.0](https://github.com/pablaber/openapi-typescript-types/compare/v0.2.1...v0.3.0) (2024-05-22)
 
 
