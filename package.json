@@ -1,6 +1,6 @@
 {
   "name": "openapi-typescript-types",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A tool used to generate types from OpenAPI 3.x schemas",
   "author": "Patrick Bacon-Blaber",
   "license": "ISC",
