@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.1...v0.3.2) (2024-06-27)
+
+
+### Bug Fixes
+
+* syntax error for generated types with additional properties ([#28](https://github.com/pablaber/openapi-typescript-types/issues/28)) ([5fe7ffd](https://github.com/pablaber/openapi-typescript-types/commit/5fe7ffdc9ac0f9ed90abad6fa4ed07a28b845f67))
+
 ## [0.3.1](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.0...v0.3.1) (2024-05-23)
 
 
