@@ -165,6 +165,7 @@ function generateCodeForProperty(
     // If there are already properties, we need to concatenate the additional
     // properties Record with existing
     if (hasProperties) {
+      propertiesTypeString += indented('}', level);
       return `${indentedPropertyPrefix}${wrapNullable(propertiesTypeString, nullable)} & ${additionalPropertiesTypeString}`;
     }
     return indented(
