@@ -16,7 +16,7 @@ jobs:
     name: 🏷️ Validate PR Title
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@v5
+      - uses: amannn/action-semantic-pull-request@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -28,12 +28,5 @@ jobs:
           subjectPatternError: |
             The subject "{subject}" found in the pull request title "{title}"
             didn't match the configured pattern.
-            
+
             - lowercase types (chore, feat, fix)
-          
-          # If the PR only contains a single commit, the action will validate that
-          # it matches the configured pattern.
-          validateSingleCommit: true
-          # Related to `validateSingleCommit` you can opt-in to validate that the PR
-          # title matches a single commit to avoid confusion.
-          validateSingleCommitMatchesPrTitle: true

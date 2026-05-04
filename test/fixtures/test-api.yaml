@@ -1,0 +1,233 @@
+openapi: 3.0.0
+info:
+  title: ott Test API
+  version: '1.0.0'
+  description: >-
+    Fixture exercising every OpenAPI construct that ott is expected to
+    support. The generated TypeScript must compile under tsc --strict.
+
+paths:
+  /items:
+    get:
+      summary: List items
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+    post:
+      summary: Create item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+
+  /items/{itemId}:
+    get:
+      summary: Get item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          description: not found
+
+  /items/{itemId}/tags:
+    put:
+      summary: Replace tags
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tags]
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Arrays'
+
+components:
+  schemas:
+    BasicTypes:
+      type: object
+      required: [name, count, ratio, active]
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+        ratio:
+          type: number
+        active:
+          type: boolean
+        optional_field:
+          type: string
+
+    NullableTypes:
+      type: object
+      required: [maybe_string, maybe_int, maybe_bool]
+      properties:
+        maybe_string:
+          type: string
+          nullable: true
+        maybe_int:
+          type: integer
+          nullable: true
+        maybe_bool:
+          type: boolean
+          nullable: true
+
+    Status:
+      type: object
+      required: [state]
+      properties:
+        state:
+          type: string
+          enum: [active, inactive, pending]
+
+    Arrays:
+      type: object
+      required: [tags, nullable_tags, objects]
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+        nullable_tags:
+          type: array
+          nullable: true
+          items:
+            type: string
+        objects:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id:
+                type: string
+        nullable_objects:
+          type: array
+          nullable: true
+          items:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+                nullable: true
+
+    NestedObject:
+      type: object
+      required: [profile]
+      properties:
+        profile:
+          type: object
+          required: [name]
+          properties:
+            name:
+              type: string
+            address:
+              type: object
+              nullable: true
+              required: [city]
+              properties:
+                city:
+                  type: string
+                zip:
+                  type: string
+                  nullable: true
+
+    AdditionalPropertiesOnly:
+      type: object
+      additionalProperties:
+        type: string
+
+    AdditionalPropertiesWithProps:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+      additionalProperties:
+        type: integer
+
+    EmptyObject:
+      type: object
+
+    Unions:
+      type: object
+      required: [value]
+      properties:
+        value:
+          oneOf:
+            - type: string
+            - type: integer
+        any_value:
+          anyOf:
+            - type: string
+            - type: boolean
+        intersected:
+          allOf:
+            - type: object
+              required: [a]
+              properties:
+                a:
+                  type: string
+            - type: object
+              required: [b]
+              properties:
+                b:
+                  type: integer
+
+    Item:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          nullable: true
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/Status'

@@ -182,14 +182,16 @@ function generateCodeForProperty(
       return null;
     }
     const nextPath = [...currentPath, 'items[]'];
-    const propTypeString = generateCodeForProperty({
+    const itemTypeString = generateCodeForProperty({
       currentPath: nextPath,
-      propertyName: propertyName,
       propertyDefinition: items,
-      isRequired,
+      isRequired: false,
       level,
     });
-    if (propTypeString) return wrapNullable(`${propTypeString}[]`, nullable);
+    if (itemTypeString) {
+      const arrayType = wrapNullable(`${itemTypeString}[]`, nullable);
+      return indented(`${propertyPrefix}${arrayType}`, level, unnamed);
+    }
   }
 
   const currentPathString = `${currentPath.join('.')}.${propertyName}`;
