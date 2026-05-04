@@ -64,4 +64,80 @@ ott \
   --exclude-schemas
 ```
 
+## Development
+
+### Prerequisites
+
+Node version is pinned in `.nvmrc` (Node 24). If you use `nvm`:
+
+```bash
+nvm use
+```
+
+### Setup
+
+```bash
+npm install
+```
+
+### Scripts
+
+- `npm run build` — Compile TypeScript sources to `dist/` via `tsc`.
+- `npm run lint` — Run ESLint over the repo (uses `typescript-eslint`'s
+  strict configs).
+- `npm run create-executable` — Build and `npm i -g` so `ott` is available
+  globally on your machine for end-to-end testing.
+- `npm test` — Currently a stub (`exit 1`). There is no automated test
+  suite; see "Testing" below.
+
+### Testing
+
+There is no automated test runner. Changes are validated by:
+
+1. Running `npm run lint && npm run build` to ensure the project still
+   type-checks and lints clean.
+2. Running the built CLI against `demo/petstore.yaml` and inspecting the
+   generated output:
+
+   ```bash
+   npm run build
+   node dist/main.js --input demo/petstore.yaml --output /tmp/petstore-types.ts
+   tsc --noEmit --strict /tmp/petstore-types.ts
+   ```
+
+3. For a bug fix tied to a specific OpenAPI construct, add a minimal
+   reproduction YAML and confirm the generated output compiles under
+   strict TypeScript before opening a PR.
+
+### CI workflows
+
+Located in `.github/workflows/`:
+
+- `checks.yaml` — Runs on every push to `main` and every pull request.
+  Sets up Node from `.nvmrc`, runs `npm ci`, `npm run lint`, and
+  `npm run build`. PRs must be green here before merge.
+- `pr-validate.yaml` — Validates that the PR title follows
+  [Conventional Commits](https://www.conventionalcommits.org/) using
+  `amannn/action-semantic-pull-request`. Only `feat`, `fix`, and `chore`
+  prefixes are accepted.
+- `release.yaml` — Runs on push to `main`. Uses
+  [release-please](https://github.com/googleapis/release-please) to open
+  release PRs that bump the version and update `CHANGELOG.md`. Merging a
+  release PR triggers a build and `npm publish`.
+
+### Release process
+
+This repo uses release-please. **Do not edit `package.json`'s `version`
+field manually** — release-please derives the next version from the
+Conventional Commit messages on `main`:
+
+- `feat:` commits trigger a minor version bump.
+- `fix:` commits trigger a patch version bump.
+- `feat!:` (or any commit with a `BREAKING CHANGE:` footer) triggers a
+  major version bump.
+- `chore:` commits appear in the changelog under "Miscellaneous" and do
+  not bump the version.
+
+Sections in the generated changelog are configured in
+`release-please-config.json`.
 
