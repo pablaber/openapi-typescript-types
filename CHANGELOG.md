@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.2...v0.3.3) (2026-05-04)
+
+
+### Bug Fixes
+
+* nullable arrays + node 24 + dev workflow docs ([#30](https://github.com/pablaber/openapi-typescript-types/issues/30)) ([d842912](https://github.com/pablaber/openapi-typescript-types/commit/d842912e8067e36c80f2778f1b4c33cf1738fc31))
+
 ## [0.3.2](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.1...v0.3.2) (2024-06-27)
 
 
