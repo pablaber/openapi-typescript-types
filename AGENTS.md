@@ -37,7 +37,11 @@ TypeScript sources in `lib/` and `main.ts` to `dist/` via `tsc`.
 - `lib/logger.ts` — `winston` console logger; level is set to `debug` when
   `--debug` is passed, otherwise `info`.
 - `lib/error.ts` — `logErrorAndExit` helper.
-- `demo/petstore.yaml` — Sample OpenAPI doc used for manual smoke tests.
+- `demo/petstore.yaml` — Sample OpenAPI doc used for ad-hoc smoke tests.
+- `test/fixtures/*.yaml` — Test-suite fixtures exercising supported
+  OpenAPI constructs.
+- `test/run.js` — Test runner. Generates types from each fixture and
+  type-checks the output with `tsc --strict`.
 - `.github/workflows/` — `checks.yaml` runs lint + build on every PR;
   `pr-validate.yaml` enforces Conventional Commit PR titles (`chore`,
   `feat`, `fix`); `release.yaml` runs release-please on `main` and
@@ -53,16 +57,17 @@ Node version is pinned in `.nvmrc` (Node 24). Install with `npm install`.
 - `npm run lint` — Run ESLint over the repo.
 - `npm run create-executable` — Build then `npm i -g`, exposing `ott`
   globally for local end-to-end testing.
-- `npm test` — Not implemented. The script intentionally exits non-zero
-  (`echo "Error: no test specified" && exit 1`); do not rely on it.
+- `npm test` — Run the fixture-based test suite via `test/run.js`.
+  Requires `dist/main.js` to exist (run `npm run build` first).
 
-There is no automated test suite. To verify behavior, build and run `ott`
-against `demo/petstore.yaml`, e.g.:
+The test suite generates types from every YAML in `test/fixtures/` and
+type-checks the output with `tsc --noEmit --strict`. To add coverage,
+drop another `*.yaml` in `test/fixtures/` — the runner picks it up
+automatically. Output lands in `test/output/` (gitignored).
 
-```bash
-npm run build
-node dist/main.js --input demo/petstore.yaml --output /tmp/petstore-types.ts
-```
+For a bug fix tied to a new OpenAPI construct, prefer adding a case to
+`test/fixtures/test-api.yaml` (or a new fixture) over a one-off manual
+check.
 
 ## CLI surface
 
@@ -204,10 +209,10 @@ At minimum:
 
 - `npm run lint` — clean.
 - `npm run build` — clean.
-- Ran `node dist/main.js --input demo/petstore.yaml --output /tmp/out.ts`
-  and confirmed output compiles with `tsc --noEmit --strict /tmp/out.ts`.
-- Added an inline repro YAML covering nullable arrays, ran ott against
-  it, and confirmed the generated `Nullable<T[]>` shape.
+- `npm test` — all fixtures pass.
+- Added a nullable-array case to `test/fixtures/test-api.yaml` and
+  confirmed it appears in `test/output/test-api.ts` as
+  `Nullable<T[]>`.
 ```
 
 If you generated types against an external/private OpenAPI doc to

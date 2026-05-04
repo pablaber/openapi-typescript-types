@@ -87,27 +87,27 @@ npm install
   strict configs).
 - `npm run create-executable` — Build and `npm i -g` so `ott` is available
   globally on your machine for end-to-end testing.
-- `npm test` — Currently a stub (`exit 1`). There is no automated test
-  suite; see "Testing" below.
+- `npm test` — Run the fixture-based test suite (see "Testing" below).
+  Requires `npm run build` first.
 
 ### Testing
 
-There is no automated test runner. Changes are validated by:
+The test suite (`test/run.js`) drives the built CLI against every
+fixture in `test/fixtures/` and confirms the generated TypeScript compiles
+under `tsc --strict`. The default fixture (`test/fixtures/test-api.yaml`)
+covers the OpenAPI constructs ott supports: basic types, nullable types,
+enums, arrays (including nullable arrays of objects), nested objects,
+`additionalProperties`, `oneOf`/`anyOf`/`allOf`, path operations with
+request bodies and 2xx responses, and path variables.
 
-1. Running `npm run lint && npm run build` to ensure the project still
-   type-checks and lints clean.
-2. Running the built CLI against `demo/petstore.yaml` and inspecting the
-   generated output:
+```bash
+npm run build
+npm test
+```
 
-   ```bash
-   npm run build
-   node dist/main.js --input demo/petstore.yaml --output /tmp/petstore-types.ts
-   tsc --noEmit --strict /tmp/petstore-types.ts
-   ```
-
-3. For a bug fix tied to a specific OpenAPI construct, add a minimal
-   reproduction YAML and confirm the generated output compiles under
-   strict TypeScript before opening a PR.
+To extend coverage for a new construct or a regression, drop another
+`*.yaml` file into `test/fixtures/` — the runner picks it up
+automatically. Generated output is written to `test/output/` (gitignored).
 
 ### CI workflows
 
