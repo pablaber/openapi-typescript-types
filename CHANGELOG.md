@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.3...v0.3.4) (2026-05-05)
+
+
+### Bug Fixes
+
+* use trusted publishing for npm releases ([#33](https://github.com/pablaber/openapi-typescript-types/issues/33)) ([5fd943e](https://github.com/pablaber/openapi-typescript-types/commit/5fd943e91882de7a7f02bfe6b24a718bf0e16339))
+
 ## [0.3.3](https://github.com/pablaber/openapi-typescript-types/compare/v0.3.2...v0.3.3) (2026-05-04)
 
 
