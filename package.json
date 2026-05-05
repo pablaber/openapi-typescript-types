@@ -17,15 +17,16 @@
   ],
   "main": "./dist/main.js",
   "bin": {
-    "ott": "./dist/main.js"
+    "ott": "bin/ott.js"
   },
   "files": [
+    "bin",
     "dist",
     "CHANGELOG.md"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pablaber/openapi-typescript-types/"
+    "url": "git+https://github.com/pablaber/openapi-typescript-types.git"
   },
   "scripts": {
     "build": "tsc",
